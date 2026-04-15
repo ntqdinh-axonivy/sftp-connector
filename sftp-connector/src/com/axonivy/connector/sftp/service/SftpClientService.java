@@ -259,6 +259,8 @@ public class SftpClientService implements AutoCloseable {
 	 * @throws IOException
 	 */
 	public void uploadFile(InputStream is, String remoteDstFilePath) throws IOException {
+				validateRemotePath(remoteDstFilePath);
+
 		try {
 			channel.put(is, remoteDstFilePath);
 		} catch (SftpException ex) {
@@ -295,6 +297,7 @@ public class SftpClientService implements AutoCloseable {
 	 * @throws IOException
 	 */
 	public void downloadFile(String remoteSrcFilePath, OutputStream oStream) throws IOException {
+		validateRemotePath(remoteSrcFilePath);
 		try {
 			channel.get(remoteSrcFilePath, oStream);
 		} catch (SftpException ex) {
@@ -313,6 +316,7 @@ public class SftpClientService implements AutoCloseable {
 	 * @throws IOException
 	 */
 	public void downloadFile(String remoteSrcFilePath, String localDstFilePath) throws IOException {
+		validateRemotePath(remoteSrcFilePath);
 		try {
 			channel.get(remoteSrcFilePath, localDstFilePath);
 		} catch (SftpException ex) {
