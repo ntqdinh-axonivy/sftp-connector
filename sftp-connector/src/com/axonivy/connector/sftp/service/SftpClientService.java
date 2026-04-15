@@ -45,7 +45,11 @@ public class SftpClientService implements AutoCloseable {
 	private static final String USERNAME_VAR = "username";
 	private static final String ENFORCE_PATH_RESTRICTIONS_VAR = "enforcePathRestrictions";
 	private static final String BASE_LOCAL_DIR_VAR = "baseLocalDir";
-
+	private static final String WINDOWS_PATH_SEPARATOR = "\\";
+	private static final String PARENT_DIR_REFERENCE = "..";
+	private static final String CURRENT_DIR_WITH_SLASH = "./";
+	private static final String CURRENT_DIR_REFERENCE = ".";
+	private static final String ABSOLUTE_PATH_PREFIX = "/";
 	/**
 	 * A Session represents a connection to an SSH server.
 	 */
@@ -173,7 +177,23 @@ public class SftpClientService implements AutoCloseable {
 			throw new IOException(ex);
 		}
 	}
-
+	private void validateRemotePath(String remotePath) throws SecurityException {
+		if (!enforcePathRestrictions) {
+			return;
+		}
+		if (StringUtils.isBlank(remotePath)) {
+			throw new SecurityException("Security validation failed: remote path cannot be null or empty");
+		}
+		if (remotePath.startsWith(ABSOLUTE_PATH_PREFIX)) {
+			throw new SecurityException("Security validation failed: absolute paths not allowed for remote transfers. Use relative paths instead: " + remotePath);
+		}
+		if (remotePath.contains(PARENT_DIR_REFERENCE) || remotePath.contains(CURRENT_DIR_WITH_SLASH) || remotePath.startsWith(CURRENT_DIR_REFERENCE)) {
+			throw new SecurityException("Security validation failed: path traversal detected in remote path: " + remotePath);
+		}
+		if (remotePath.contains(WINDOWS_PATH_SEPARATOR)) {
+			throw new SecurityException("Security validation failed: invalid path separator in remote path: " + remotePath);
+		}
+	}
 	/**
 	 * Returns the File information of a single file.
 	 * 
@@ -257,6 +277,7 @@ public class SftpClientService implements AutoCloseable {
 	 * @throws IOException
 	 */
 	public void uploadFile(String localSrcFilePath, String remoteDstFilePath) throws IOException {
+		validateRemotePath(remoteDstFilePath);
 		try {
 			channel.put(localSrcFilePath, remoteDstFilePath);
 		} catch (SftpException ex) {
