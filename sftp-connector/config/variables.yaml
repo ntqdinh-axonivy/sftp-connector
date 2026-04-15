@@ -31,3 +31,13 @@ Variables:
               
               # The ssh key passphrase
               sshPassphraseSecret: ''
+              baseLocalDir: ""
+              # Enables basic path restriction checks for file operations.
+              # When enabled, local file paths will be normalized and validated to ensure
+              # they do not escape the configured base directory (if provided).
+              # ⚠️ This does not provide full protection against all path traversal techniques.
+              # It is intended to reduce the risk of unintended file access when handling
+              # untrusted or dynamic input.
+              # Default: true
+              enforcePathRestrictions: "true"
+

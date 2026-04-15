@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,6 +43,8 @@ public class SftpClientService implements AutoCloseable {
 	private static final String AUTH_VAR = "auth";
 	private static final String PASSWORD_VAR = "password";
 	private static final String USERNAME_VAR = "username";
+	private static final String ENFORCE_PATH_RESTRICTIONS_VAR = "enforcePathRestrictions";
+	private static final String BASE_LOCAL_DIR_VAR = "baseLocalDir";
 
 	/**
 	 * A Session represents a connection to an SSH server.
@@ -51,7 +54,9 @@ public class SftpClientService implements AutoCloseable {
 	 * A Channel connected to an SFTP server (as a subsystem of the ssh server).
 	 */
 	private ChannelSftp channel;
-
+	private Path baseLocalDir;
+	
+	private boolean enforcePathRestrictions;
 	/***
 	 * 
 	 * @param sftpName
@@ -65,7 +70,15 @@ public class SftpClientService implements AutoCloseable {
 		String auth = getVar(sftpName, AUTH_VAR);
 		String sshKeyFilePath = getVar(sftpName, SSHKEY_FILEPATH_VAR);
 		String secretSSHpassphrase = getVar(sftpName, SECRET_SSHPASSPHRASE_VAR);
-
+		String enforcePathRestrictionsStr = getVar(sftpName, ENFORCE_PATH_RESTRICTIONS_VAR);
+		enforcePathRestrictions = Boolean.parseBoolean(enforcePathRestrictionsStr);
+		if (enforcePathRestrictions) {
+			String baseLocalDirStr = getVar(sftpName, BASE_LOCAL_DIR_VAR);
+			if (StringUtils.isBlank(baseLocalDirStr)) {
+				throw new SecurityException("Security validation is enabled (enforcePathRestrictions=true) but baseLocalDir is not configured. ");
+			}
+			baseLocalDir = Paths.get(baseLocalDirStr);
+		}
 		int port = 22;
 		try {
 			port = Integer.parseInt(portRaw);

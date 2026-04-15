@@ -18,6 +18,7 @@ import ch.ivyteam.ivy.bpm.engine.client.BpmClient;
 import ch.ivyteam.ivy.bpm.engine.client.element.BpmElement;
 import ch.ivyteam.ivy.bpm.engine.client.sub.SubProcessCallResult;
 import ch.ivyteam.ivy.bpm.exec.client.IvyProcessTest;
+import ch.ivyteam.ivy.environment.AppFixture;
 import ch.ivyteam.ivy.scripting.objects.File;
 
 
@@ -34,13 +35,12 @@ import ch.ivyteam.ivy.scripting.objects.File;
  * <a href="https://developer.axonivy.com/doc/9.2/concepts/testing/process-testing.html">Process Testing docs</a>
  * </p>
  */
-@IvyProcessTest(enableWebServer = true)
 public class SftpProcessSSHTest extends BaseTest {
 	
 	@BeforeAll
-	public static void init() throws Exception {
+	public static void init(AppFixture fixture) throws Exception {
 		String keyPath = SftpProcessSSHTest.class.getResource("sftptest").getPath();
-		setVarForSFTPName(TEST_SFTP_SSH_SERVER_NAME, "usr2ssh", "ssh", "", keyPath, "123456");
+		setVarForSFTPName(TEST_SFTP_SSH_SERVER_NAME, "usr2ssh", "ssh", "", keyPath, "123456", fixture);
 	}
 	
 	@Test
